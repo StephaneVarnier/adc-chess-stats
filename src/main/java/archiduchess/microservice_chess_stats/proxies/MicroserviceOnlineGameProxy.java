@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import archiduchess.microservice_chess_stats.beans.OnlineGameBean;
 
-@FeignClient(name="microservice-onlineGame")
+@FeignClient(name="microservice-onlineGame", url="localhost:9999")
 public interface MicroserviceOnlineGameProxy {
 
 		@GetMapping(path="/archiduchess/onlineGames/{id}")
@@ -28,6 +28,12 @@ public interface MicroserviceOnlineGameProxy {
 		
 		@GetMapping(path="/archiduchess/onlineGames/user/{user}")
 		public List<OnlineGameBean> getGamesByUser(@PathVariable String user) ;
+		
+		@GetMapping(path = "/archiduchess/onlineGames/white/{user}")
+		public List<OnlineGameBean> getWhiteGamesByUser(@PathVariable String user) ;
+		
+		@GetMapping(path = "/archiduchess/onlineGames/black/{user}")
+		public List<OnlineGameBean> getBlackGamesByUser(@PathVariable String user) ;
 
 		@GetMapping(path="/archiduchess/onlineGames/nextMove/id/{id}/fen/{fen}")
 		public String getNextMoveByFenAndId(@PathVariable String id, @PathVariable String fen);

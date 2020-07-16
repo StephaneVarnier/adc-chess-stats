@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import archiduchess.microservice_chess_stats.beans.LeaderBean;
 
-@FeignClient(name="microservice-leaderboard")
+@FeignClient(name="microservice-leaderboard", url="localhost:9997")
 public interface MicroserviceLeaderProxy {
 
 		@GetMapping(path="/archiduchess/leaders")
