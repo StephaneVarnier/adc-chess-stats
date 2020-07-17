@@ -7,8 +7,8 @@ import org.springframework.data.annotation.Id;
 @Document(collection = "MoveStat")
 public class MoveStat {
 
-	@Id
-	private String Id;
+//	@Id
+//	private String id;
 	
 	private String gameId; 
 	private String fen;
@@ -19,9 +19,9 @@ public class MoveStat {
 	
 	
 	
-	public String getId() {
-		return Id;
-	}
+//	public String getId() {
+//		return id;
+//	}
 	
 	public String getGameId() {
 		return gameId;

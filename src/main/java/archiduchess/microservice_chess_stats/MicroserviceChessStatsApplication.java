@@ -9,7 +9,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication (exclude = {DataSourceAutoConfiguration.class })
-@EnableFeignClients("archiduchess.microservice_chess_stats")
+@EnableScheduling
+@EnableFeignClients
 @EnableSwagger2
 public class MicroserviceChessStatsApplication {
 
