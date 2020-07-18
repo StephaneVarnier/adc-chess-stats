@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import archiduchess.microservice_chess_stats.beans.OnlineGameBean;
 
-@FeignClient(name="microservice-onlineGame", url="localhost:9999")
+@FeignClient(name="microservice-onlineGame", url="${URL_GAMES}")
 public interface MicroserviceOnlineGameProxy {
 
 		@GetMapping(path="/archiduchess/onlineGames/{id}")

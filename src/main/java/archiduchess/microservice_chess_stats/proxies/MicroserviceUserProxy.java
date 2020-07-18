@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import archiduchess.microservice_chess_stats.beans.UserBean;
 
 
-@FeignClient(name="microservice-user", url="localhost:9998")
+@FeignClient(name="microservice-user", url="${URL_USERS}")
 public interface MicroserviceUserProxy {
 
 	@GetMapping(path="archiduchess/users")
