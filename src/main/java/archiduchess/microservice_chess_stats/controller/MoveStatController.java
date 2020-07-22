@@ -83,7 +83,7 @@ public class MoveStatController {
 
 	@ApiOperation(value = "Enregistre toutes les stats en base.")
 	@RequestMapping("/moveStats")
-	@Scheduled(cron="* /20 * * * *") //every hour 
+	@Scheduled(cron="* /10 * * * *") //every hour 
 	public @ResponseBody String createMoveStats() {
 
 		List<LeaderBean> leaders = leaderProxy.getAllLeaders();
