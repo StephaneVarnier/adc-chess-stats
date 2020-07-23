@@ -26,6 +26,7 @@ import archiduchess.microservice_chess_stats.proxies.MicroserviceLeaderProxy;
 import archiduchess.microservice_chess_stats.proxies.MicroserviceOnlineGameProxy;
 import archiduchess.microservice_chess_stats.proxies.MicroserviceUserProxy;
 import archiduchess.microservice_chess_stats.repositories.MoveStatRepository;
+import feign.FeignException;
 import io.swagger.annotations.ApiOperation;
 
 @CrossOrigin("*")
@@ -33,7 +34,7 @@ import io.swagger.annotations.ApiOperation;
 @Controller
 @RequestMapping(path = "/archiduchess")
 public class MoveStatController {
-	
+
 	Logger log = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
@@ -41,120 +42,110 @@ public class MoveStatController {
 
 	@Autowired
 	private MicroserviceLeaderProxy leaderProxy;
-	
+
 	@Autowired
 	private MicroserviceUserProxy userProxy;
 
 	@Autowired
 	private MoveStatRepository moveStatRepo;
-	
 
 	@ApiOperation(value = "Recherche les stats pour un joueur et une partie donnés")
 	@GetMapping("/stats/user/{user}/gameId/{gameId}")
-	public @ResponseBody List<FenStat> getStatsByUserAndGameId(@PathVariable String user, @PathVariable String gameId) 
-	{
-		List<FenStat> fenStats = new ArrayList<>(); 
+	public @ResponseBody List<FenStat> getStatsByUserAndGameId(@PathVariable String user, @PathVariable String gameId) {
+		List<FenStat> fenStats = new ArrayList<>();
 		List<MoveStat> userGameIdStats = moveStatRepo.findByGameIdAndUser(gameId, user);
-		
+
 		for (MoveStat stat : userGameIdStats) {
 			String fen = stat.getFen();
-			
+
 			List<MoveStat> userFenStats = moveStatRepo.findByUserAndFen(user, fen);
 			int playedGames = userFenStats.size();
-			
-			double victories = userFenStats
-					.stream()
-					.filter(e -> e.getScore() == 1)
-					.collect(Collectors.toList())
-					.size();
-			
-			
-			double draws = userFenStats
-					.stream()
-					.filter(e -> e.getScore() == 0.5)
-					.collect(Collectors.toList())
-					.size();
-			
-			double efficiency = (victories+draws/2) / playedGames;
+
+			double victories = userFenStats.stream().filter(e -> e.getScore() == 1).collect(Collectors.toList()).size();
+
+			double draws = userFenStats.stream().filter(e -> e.getScore() == 0.5).collect(Collectors.toList()).size();
+
+			double efficiency = (victories + draws / 2) / playedGames;
 			fenStats.add(new FenStat(user, fen, playedGames, efficiency));
 		}
 		return fenStats;
 	}
-	
-	
+
 	@ApiOperation(value = "Enregistre toutes les stats en base.")
 	@RequestMapping("/moveStats")
-	//@Scheduled(cron="* 0 * * * *") //every hour 
+	@Scheduled(cron = "0 0,20,40 * * * *") // every hour
 	public @ResponseBody String createMoveStats() {
 
 		List<LeaderBean> leaders = leaderProxy.getAllLeaders();
 		List<UserBean> users = userProxy.getAllUsers();
-		
+
 		for (LeaderBean leader : leaders) {
-			log.info("starting with "+leader.getUsername()+"....");
+			log.info("starting with " + leader.getUsername() + "....");
 			moveStatsByPlayer(leader.getUsername());
-			log.info(leader.getUsername()+" done");
+			log.info(leader.getUsername() + " done");
 		}
-		
+
 		for (UserBean user : users) {
-			log.info("starting with "+user.getUsername()+"....");
-			moveStatsByPlayer(user.getUsername());	
-			log.info(user.getUsername()+" done");
+			log.info("starting with " + user.getUsername() + "....");
+			moveStatsByPlayer(user.getUsername());
+			log.info(user.getUsername() + " done");
 		}
 		return ("moves data stored in database");
 	}
 
 	private void moveStatsByPlayer(String username) {
-		
+
 		List<OnlineGameBean> games = gameProxy.getWhiteGamesByUser(username);
-		getAndSaveMoves(games, username, Color.White); 
-		
-				
+		getAndSaveMoves(games, username, Color.White);
+
 		games = gameProxy.getBlackGamesByUser(username);
-		getAndSaveMoves(games, username, Color.Black); 
+		getAndSaveMoves(games, username, Color.Black);
 	}
-	
-	
+
 	private void getAndSaveMoves(List<OnlineGameBean> games, String username, Color color) {
 		List<MoveStat> moveStats = new ArrayList<>();
-		
-		for (OnlineGameBean game : games) {
-			if (moveStatRepo.findByGameIdAndColor(game.getId(), color).size() > 0) break;
-			
-			double score = evalScore(game.getResultat(), color);
-			
-			List<String> fens = gameProxy.getFensById(game.getId());
-			List<String> sans = gameProxy.getSansById(game.getId());
 
-			for (int i=0;i<fens.size();i++) {
-				
-				MoveStat moveStat = new MoveStat();
-				moveStat.setGameId(game.getId());
-				moveStat.setColor(color);
-				moveStat.setUser(username);
-				moveStat.setScore(score);
-				
-				try{
-					moveStat.setFen(fens.get(i));
+		for (OnlineGameBean game : games) {
+			if (moveStatRepo.findByGameIdAndColor(game.getId(), color).size() > 0)
+				break;
+
+			double score = evalScore(game.getResultat(), color);
+
+			try {
+				List<String> fens = gameProxy.getFensById(game.getId());
+				List<String> sans = gameProxy.getSansById(game.getId());
+
+				for (int i = 0; i < fens.size(); i++) {
+
+					MoveStat moveStat = new MoveStat();
+					moveStat.setGameId(game.getId());
+					moveStat.setColor(color);
+					moveStat.setUser(username);
+					moveStat.setScore(score);
+
+					try {
+						moveStat.setFen(fens.get(i));
+					} catch (Exception e) {
+					}
+
+					try {
+						moveStat.setNextMove(sans.get(i));
+					} catch (Exception IndexOutOfBoundsException) {
+					}
+
+					moveStats.add(moveStat);
 				}
-				catch (Exception e) {}
-				
-				try{
-					moveStat.setNextMove(sans.get(i));
-				}
-				catch (Exception IndexOutOfBoundsException) {}
-				
-				moveStats.add(moveStat);
-				
+			} catch (FeignException fe) {
 			}
+			;
+
 		}
-		
+
 		moveStatRepo.saveAll(moveStats);
-		log.info(""+moveStats.size() + " " + color+" games saved");
-		
+		log.info("" + moveStats.size() + " " + color + " games saved");
+
 	}
 
-	
 	private double evalScore(String resultat, Color color) {
 		double score = 0;
 		if (resultat.equals("1/2-1/2"))
