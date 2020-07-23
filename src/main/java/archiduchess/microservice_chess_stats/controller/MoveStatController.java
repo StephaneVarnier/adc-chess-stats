@@ -28,7 +28,7 @@ import archiduchess.microservice_chess_stats.proxies.MicroserviceUserProxy;
 import archiduchess.microservice_chess_stats.repositories.MoveStatRepository;
 import io.swagger.annotations.ApiOperation;
 
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin("*")
 @Component
 @Controller
 @RequestMapping(path = "/archiduchess")
