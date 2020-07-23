@@ -28,7 +28,7 @@ import archiduchess.microservice_chess_stats.proxies.MicroserviceUserProxy;
 import archiduchess.microservice_chess_stats.repositories.MoveStatRepository;
 import io.swagger.annotations.ApiOperation;
 
-@CrossOrigin("*")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @Component
 @Controller
 @RequestMapping(path = "/archiduchess")
@@ -48,7 +48,7 @@ public class MoveStatController {
 	@Autowired
 	private MoveStatRepository moveStatRepo;
 	
-	@CrossOrigin("*")
+
 	@ApiOperation(value = "Recherche les stats pour un joueur et une partie donnés")
 	@GetMapping("/stats/user/{user}/gameId/{gameId}")
 	public @ResponseBody List<FenStat> getStatsByUserAndGameId(@PathVariable String user, @PathVariable String gameId) 
@@ -81,7 +81,7 @@ public class MoveStatController {
 		return fenStats;
 	}
 	
-	@CrossOrigin("*")
+	
 	@ApiOperation(value = "Enregistre toutes les stats en base.")
 	@RequestMapping("/moveStats")
 	@Scheduled(cron="* /10 * * * *") //every hour 
